@@ -73,3 +73,23 @@ int 	check_elf(t_mem_image *binary)
 	return arch;
 }
 
+/**
+ * Copia dal file d'origine al nuovo file che verrà poi modificato
+ * @param org t_meme_image originale (src)
+ * @param size variabile da riempire per la destinazione
+ * @return puntatore alla mappa in memoria del nuovo file
+ */
+void 	*copy_file(t_mem_image *org, size_t *size)
+{
+	int		fd = 0;
+	void 	*ret = 0;
+
+	if ((fd = open("woody", O_RDWR | O_CREAT, 0777)) < 0)
+		exit_error("Error open file", 16);
+	write(fd, org->addr, org->size);
+	*size = org->size;
+	if ((ret = mmap(0, org->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED)
+		exit_error("Error mapping file", 17);
+	close(fd);
+	return ret;
+}

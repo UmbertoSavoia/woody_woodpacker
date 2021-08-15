@@ -27,6 +27,7 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) payload/inject64.o
 	$(RM) payload/inject32.o
+	$(RM) woody
 
 fclean: clean
 	$(RM) $(TARGET)

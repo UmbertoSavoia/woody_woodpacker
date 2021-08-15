@@ -1,5 +1,5 @@
 #include "../include/woody.h"
-// exit 15
+// exit 18
 /*
  * TODO provare nel payload a mettere i registri a 32bit e vedere se tutto funziona anche a 64bit
  * TODO aggiungere nel make la compilazione del payload a 32bit
@@ -8,14 +8,17 @@
 int 	main(int ac, char **av)
 {
 	t_mem_image	binary_map;
+	t_mem_image	binary_map_org;
 	t_mem_image payload;
-	int			arch = 0, section_to_infect = 0;;
+	int			arch = 0, section_to_infect = 0;
 	Elf64_Ehdr *ehdr64 = 0;
 
 	if (ac != 2)
 		exit_error("Invalid Argument", 1);
-	binary_map.addr = map_file_in_memory(av[1], &binary_map.size);
-	arch = check_elf(&binary_map);
+	binary_map_org.addr = map_file_in_memory(av[1], &binary_map_org.size);
+	arch = check_elf(&binary_map_org);
+
+	binary_map.addr = copy_file(&binary_map_org, &binary_map.size);
 
 	if (arch == 64)
 	{
@@ -30,4 +33,6 @@ int 	main(int ac, char **av)
 	free(payload.addr);
 	if (munmap(binary_map.addr, binary_map.size) == -1)
 		exit_error("Error unmapping memory", 4);
+	if (munmap(binary_map_org.addr, binary_map_org.size) == -1)
+		exit_error("Error unmapping memory", 18);
 }

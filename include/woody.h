@@ -29,6 +29,7 @@ typedef struct s_mem_image
 void 	exit_error(const char *msg, int exit_code);
 void 	*map_file_in_memory(const char *file_path, size_t *size_file);
 int 	check_elf(t_mem_image *binary);
+void 	*copy_file(t_mem_image *org, size_t *size);
 
 /*
  * 64bit
