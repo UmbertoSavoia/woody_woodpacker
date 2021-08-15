@@ -35,6 +35,8 @@ void 	*extractor_payload64(const char *filepath, size_t *size)
 			break;
 		}
 	}
+	if (munmap(map_file, size_file) == -1)
+		exit_error("Error unmapping memory", 19);
 	return ret;
 }
 
