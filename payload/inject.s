@@ -37,15 +37,25 @@ start:
     mov rdx, r12 ; size tot
     mov rsi, rdi ; section offset
     mov rax, -1
-    mov cl, 0x41 ; key
-	loop:
-    	inc rax
-    	xor BYTE [rsi + rax], cl
-    	cmp rax, rdx
-    	jb loop
 
-    ; exit(result)
-    ;	mov	rdi,rax			; result
+    jmp key
+decrypt:
+   	pop r9 ; key string
+   	mov r10, 0xa ; key len
+   	xor ecx, ecx ; contatore key len
+   	xor r11, r11
+loop:
+   	inc rax ; incremento contatore sezione .text
+   	mov r8, [r9 + rcx]
+   	xor BYTE [rsi + rax], r8b ; xor tra carattere sezione .text e carattere key
+   	inc cl ; incremento contatore stringa key
+   	cmp byte [r9 + rcx], 0 ; controllo se la stringa della key sia finita
+   	cmove ecx, r11d ; se la stringa key è finita la riposiziono all'inizio
+   	cmp rax, rdx ; controllo se sono arrivato alla fine della sezione .text
+   	jb loop ; se non sono alla fine della sezione .text riparte il loop
+
+    ;exit(result)
+    ;	mov	rdi,rcx			; result
     ;	mov	rax,60			; exit(2)
     ;	syscall
 
@@ -58,6 +68,10 @@ print:
 	mov rdx, 0xe ; 3# arg -> len stringa = 14
 	syscall
 	jmp end
+
+key:
+	call decrypt
+	db `KeyDecrypt`, 0x0
 
 string:
 	call print

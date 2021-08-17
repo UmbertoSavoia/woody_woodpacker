@@ -93,3 +93,22 @@ void 	*copy_file(t_mem_image *org, size_t *size)
 	close(fd);
 	return ret;
 }
+
+/**
+ * Restituisce una parte della stringa
+ * @param s stringa di partenza
+ * @param start indice di inizio
+ * @param len lunghezza della stringa da restituire
+ * @return puntatore alla nuova sotto stringa allocata
+ */
+char	*ft_substr(char const *s, unsigned int start, size_t len)
+{
+	char *ret;
+
+	if (!s || strlen(s) <= start || !len)
+		return (strdup(""));
+	if (!(ret = malloc(++len)))
+		exit_error("Error malloc", 22);
+	memcpy(ret, &s[start], len);
+	return (ret);
+}

@@ -1,5 +1,5 @@
 #include "../include/woody.h"
-// exit 21
+// exit 22
 /*
  * TODO provare nel payload a mettere i registri a 32bit e vedere se tutto funziona anche a 64bit
  * TODO aggiungere nel make la compilazione del payload a 32bit
@@ -12,9 +12,11 @@ int 	main(int ac, char **av)
 	t_mem_image payload;
 	int			arch = 0, section_to_infect = 0;
 	Elf64_Ehdr *ehdr64 = 0;
+	char 		*key = 0;
 
-	if (ac != 2)
+	if ((ac < 2) || (ac == 3) || ( (ac == 4) && (memcmp(av[2], "-k", 2) != 0) ) || ac > 4)
 		exit_error("Invalid Argument", 1);
+	( (ac == 4) && (strlen(av[3]) >= 10) ) ? (key = ft_substr(av[3], 0, 9)) : (key = strdup("0123456789"));
 	binary_map_org.addr = map_file_in_memory(av[1], &binary_map_org.size);
 	arch = check_elf(&binary_map_org);
 
@@ -27,11 +29,12 @@ int 	main(int ac, char **av)
 		if ((section_to_infect = find_section_to_infect64(binary_map.addr + ehdr64->e_phoff,
 														 ehdr64->e_phnum, payload.size)) == -1)
 			exit_error("Unable to find a usable infection point", 14);
-		insert_payload64(binary_map.addr + ehdr64->e_phoff, section_to_infect, &binary_map, &payload);
-		encrypt_text_section64(&binary_map);
+		insert_payload64(binary_map.addr + ehdr64->e_phoff, section_to_infect, &binary_map, &payload, key);
+		encrypt_text_section64(&binary_map, key);
 	}
 
 	free(payload.addr);
+	free(key);
 	if (munmap(binary_map.addr, binary_map.size) == -1)
 		exit_error("Error unmapping memory", 4);
 	if (munmap(binary_map_org.addr, binary_map_org.size) == -1)

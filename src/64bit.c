@@ -78,8 +78,9 @@ int		find_section_to_infect64(Elf64_Phdr *phdr, int n_phdr, size_t size_payload)
  * @param binary struttura del binario
  * @param payload struttura del payload
  * @param start nuovo punto di accesso dell'eseguibile
+ * @param key chiave di cifratura
  */
-void 	insert_decrypter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf64_Off start)
+void 	insert_decrypter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf64_Off start, char *key)
 {
 	size_t		size_text = 0;
 	int			index_section = 0;
@@ -96,6 +97,7 @@ void 	insert_decrypter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf
 	memcpy(payload->addr + 11, &start, sizeof(Elf64_Word)); // copiare l'entry per mprotect
 	memcpy(payload->addr + 17, &size_text, sizeof(Elf64_Word)); // mprotect size section text
 	memcpy(payload->addr + 23, &virtual_addr, sizeof(Elf64_Word)); // mprotect offset section text
+	memcpy(payload->addr + payload->size - 47, key, 10);  // Inserisco la key nel payload
 }
 
 /**
@@ -104,8 +106,9 @@ void 	insert_decrypter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf
  * @param i Indice del Program Header da infettare
  * @param binary binario da infettare
  * @param payload Struttura del payload
+ * @param key chiave di cifratura
  */
-void 	insert_payload64(Elf64_Phdr *phdr, int i, t_mem_image *binary, t_mem_image *payload)
+void 	insert_payload64(Elf64_Phdr *phdr, int i, t_mem_image *binary, t_mem_image *payload, char *key)
 {
 	// Inserisco il payload nel binario
 	Elf64_Ehdr *ehdr = binary->addr;
@@ -118,7 +121,7 @@ void 	insert_payload64(Elf64_Phdr *phdr, int i, t_mem_image *binary, t_mem_image
 	// Modifico gli ultimi 4 byte del payload che si riferiscono alla funzione jmp
 	*(Elf64_Word*)(payload->addr + payload->size - 4) = (Elf64_Word)offset;
 	ehdr->e_entry = start;
-	insert_decrypter_in_payload(binary, payload, start);
+	insert_decrypter_in_payload(binary, payload, start, key);
 	// Inserisco il payload nel binario
 	memcpy(binary->addr + phdr[i].p_offset + phdr[i].p_filesz, payload->addr, payload->size);
 	phdr[i].p_filesz += payload->size;
@@ -152,20 +155,28 @@ int 	find_section(const char *name, t_mem_image *binary, size_t *size_section)
 
 /**
  * Ricerca la sezione .text e viene criptata tramite l'algoritmo XOR Cipher
- * @param binary
+ * @param binary struttura del binario
+ * @param key chiave per cifrare la sezione .text
  */
-void	encrypt_text_section64(t_mem_image *binary)
+void	encrypt_text_section64(t_mem_image *binary, char *key)
 {
 	int				index_section = 0;
 	size_t			size_text = 0;
 	Elf64_Shdr		*text = binary->addr + ((Elf64_Ehdr*)binary->addr)->e_shoff;
 	unsigned char	*tmp = 0;
+	char 			*save_pos_key = key;
 
+	printf("KEY: %s\n", key);
 	if ((index_section = find_section(".text", binary, &size_text)) == -1)
 		exit_error("Section not found", 19);
 	tmp = text[index_section].sh_offset + binary->addr;
 	for (size_t i = 0; i < size_text; ++i)
-		tmp[i] ^= 'A';
+	{
+		tmp[i] ^= *key;
+		key++;
+		if (!(*key))
+			key = save_pos_key;
+	}
 }
 
 /**
