@@ -34,8 +34,12 @@ void 	*copy_file(t_mem_image *org, size_t *size);
 /*
  * 64bit
  */
-void 	*extractor_payload64(const char *filepath, size_t *size);
-int		find_section_to_infect64(Elf64_Phdr *phdr, int n_phdr, size_t size_payload);
-void 	insert_payload64(Elf64_Phdr *phdr, int i, t_mem_image *binary, t_mem_image *payload);
+void 		*extractor_payload64(const char *filepath, size_t *size);
+int			find_section_to_infect64(Elf64_Phdr *phdr, int n_phdr, size_t size_payload);
+void 		insert_payload64(Elf64_Phdr *phdr, int i, t_mem_image *binary, t_mem_image *payload);
+int 		find_section(const char *name, t_mem_image *binary, size_t *size_section);
+void		encrypt_text_section64(t_mem_image *binary);
+Elf64_Addr	find_virtual_addr64(t_mem_image *binary, int *error);
+void 		insert_decripter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf64_Off start);
 
 #endif

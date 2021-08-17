@@ -1,5 +1,5 @@
 #include "../include/woody.h"
-// exit 18
+// exit 21
 /*
  * TODO provare nel payload a mettere i registri a 32bit e vedere se tutto funziona anche a 64bit
  * TODO aggiungere nel make la compilazione del payload a 32bit
@@ -28,6 +28,7 @@ int 	main(int ac, char **av)
 														 ehdr64->e_phnum, payload.size)) == -1)
 			exit_error("Unable to find a usable infection point", 14);
 		insert_payload64(binary_map.addr + ehdr64->e_phoff, section_to_infect, &binary_map, &payload);
+		encrypt_text_section64(&binary_map);
 	}
 
 	free(payload.addr);
