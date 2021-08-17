@@ -40,6 +40,6 @@ void 		insert_payload64(Elf64_Phdr *phdr, int i, t_mem_image *binary, t_mem_imag
 int 		find_section(const char *name, t_mem_image *binary, size_t *size_section);
 void		encrypt_text_section64(t_mem_image *binary);
 Elf64_Addr	find_virtual_addr64(t_mem_image *binary, int *error);
-void 		insert_decripter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf64_Off start);
+void 		insert_decrypter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf64_Off start);
 
 #endif
