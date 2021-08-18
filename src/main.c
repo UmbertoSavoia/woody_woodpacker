@@ -1,9 +1,5 @@
 #include "../include/woody.h"
-// exit 22
-/*
- * TODO provare nel payload a mettere i registri a 32bit e vedere se tutto funziona anche a 64bit
- * TODO aggiungere nel make la compilazione del payload a 32bit
- */
+// exit 31
 
 int 	main(int ac, char **av)
 {
@@ -12,6 +8,7 @@ int 	main(int ac, char **av)
 	t_mem_image payload;
 	int			arch = 0, section_to_infect = 0;
 	Elf64_Ehdr *ehdr64 = 0;
+	Elf32_Ehdr *ehdr32 = 0;
 	char 		*key = 0;
 
 	if ((ac < 2) || (ac == 3) || ( (ac == 4) && (memcmp(av[2], "-k", 2) != 0) ) || ac > 4)
@@ -32,6 +29,21 @@ int 	main(int ac, char **av)
 		insert_payload64(binary_map.addr + ehdr64->e_phoff, section_to_infect, &binary_map, &payload, key);
 		encrypt_text_section64(&binary_map, key);
 	}
+	else if (arch == 32)
+	{
+		ehdr32 = binary_map.addr;
+		payload.addr = extractor_payload32(PATH_PAYLOAD32, &payload.size);
+		if ((section_to_infect = find_section_to_infect32(binary_map.addr + ehdr32->e_phoff,
+														  ehdr32->e_phnum, payload.size)) == -1)
+			exit_error("Unable to find a usable infection point", 23);
+		insert_payload32(binary_map.addr + ehdr32->e_phoff, section_to_infect, &binary_map, &payload, key);
+		//encrypt_text_section32(&binary_map, key);
+	}
+
+	puts("\n");
+	for (size_t i = 0; i < payload.size; ++i)
+		printf("%x ", ((unsigned char *)payload.addr)[i]);
+	puts("\n");
 
 	free(payload.addr);
 	free(key);

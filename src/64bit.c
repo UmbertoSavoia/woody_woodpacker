@@ -80,7 +80,7 @@ int		find_section_to_infect64(Elf64_Phdr *phdr, int n_phdr, size_t size_payload)
  * @param start nuovo punto di accesso dell'eseguibile
  * @param key chiave di cifratura
  */
-void 	insert_decrypter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf64_Off start, char *key)
+void 	insert_decrypter_in_payload64(t_mem_image *binary, t_mem_image *payload, Elf64_Off start, char *key)
 {
 	size_t		size_text = 0;
 	int			index_section = 0;
@@ -88,7 +88,7 @@ void 	insert_decrypter_in_payload(t_mem_image *binary, t_mem_image *payload, Elf
 	int 		error = 0;
 	Elf64_Shdr	*tmp = binary->addr + ((Elf64_Ehdr*)binary->addr)->e_shoff;
 
-	if ((index_section = find_section(".text", binary, &size_text)) == -1)
+	if ((index_section = find_section64(".text", binary, &size_text)) == -1)
 		exit_error("Section not found", 20);
 	virtual_addr = find_virtual_addr64(binary, &error) + tmp[index_section].sh_offset;
 	if (error == -1)
@@ -121,7 +121,7 @@ void 	insert_payload64(Elf64_Phdr *phdr, int i, t_mem_image *binary, t_mem_image
 	// Modifico gli ultimi 4 byte del payload che si riferiscono alla funzione jmp
 	*(Elf64_Word*)(payload->addr + payload->size - 4) = (Elf64_Word)offset;
 	ehdr->e_entry = start;
-	insert_decrypter_in_payload(binary, payload, start, key);
+	insert_decrypter_in_payload64(binary, payload, start, key);
 	// Inserisco il payload nel binario
 	memcpy(binary->addr + phdr[i].p_offset + phdr[i].p_filesz, payload->addr, payload->size);
 	phdr[i].p_filesz += payload->size;
@@ -135,7 +135,7 @@ void 	insert_payload64(Elf64_Phdr *phdr, int i, t_mem_image *binary, t_mem_image
  * @param size_section variabile da riempire per conoscere la size della sezione
  * @return l'indice della sezione altrimenti -1
  */
-int 	find_section(const char *name, t_mem_image *binary, size_t *size_section)
+int 	find_section64(const char *name, t_mem_image *binary, size_t *size_section)
 {
 	Elf64_Ehdr	*cast_addr = binary->addr;
 	Elf64_Shdr	*tmp = binary->addr + cast_addr->e_shoff;
@@ -166,8 +166,7 @@ void	encrypt_text_section64(t_mem_image *binary, char *key)
 	unsigned char	*tmp = 0;
 	char 			*save_pos_key = key;
 
-	printf("KEY: %s\n", key);
-	if ((index_section = find_section(".text", binary, &size_text)) == -1)
+	if ((index_section = find_section64(".text", binary, &size_text)) == -1)
 		exit_error("Section not found", 19);
 	tmp = text[index_section].sh_offset + binary->addr;
 	for (size_t i = 0; i < size_text; ++i)

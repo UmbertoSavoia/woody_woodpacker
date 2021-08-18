@@ -4,19 +4,22 @@ CC = gcc
 CFLAGS = -Werror -Wall -Wextra
 
 AS = nasm
-ASFLAGS = -f elf64
+ASFLAGS64 = -f elf64
+ASFLAGS32 = -f elf32
 
 RM = rm -f
 
 SRCS = $(wildcard src/*.c)
 OBJS = $(SRCS:.c=.o)
-PAYLOAD = payload/inject.s
+PAYLOAD64 = payload/inject64.s
+PAYLOAD32 = payload/inject32.s
 
 all: $(TARGET)
 
 $(TARGET) : $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $(TARGET)
-	$(AS) $(ASFLAGS) $(PAYLOAD) -o payload/inject64.o
+	$(AS) $(ASFLAGS64) $(PAYLOAD64) -o payload/inject64.o
+	$(AS) $(ASFLAGS32) $(PAYLOAD32) -o payload/inject32.o
 
 bonus : all
 
