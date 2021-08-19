@@ -6,64 +6,61 @@
 global start
 
 start:
-;	push ebx
-;	push esp
-;	push ebp
-;
-;	mov edi, 0xffffffff ; new entry
-;	mov esp, 0xffffffff ; size text section
-;	mov ebp, 0xffffffff ; offset text section
-;
-;	lea ebx, [ rel start ]
-;	neg edi
-;	add ebx, edi
-;	add ebx, ebp			;   ebx      ok da qui in giu
-;	mov edi, ebx
-;	and ebx, -0x1000
-;	neg ebx
-;	add edi, ebx
-;	neg ebx
-;	add esp, edi
-;
-;	mov eax, 0xa ; chiamata a mprotect per avere i permessi di scrittura su .text per decriptare
-;	mov ecx, esp ; grandezza della sezione
-;	mov edx, 0x07 ; PROT_READ | PROT_WRITE | PROT_EXEC
-;	;int 0x80
-;
-;    add ebx, edi ; offset section text
-;    neg edi
-;    add esp, edi ; ripristino size
-;
-;    mov edx, esp ; size tot
-;    mov ecx, ebx ; section offset
-;    mov eax, -1
-;
-;    jmp key
-;decrypt:
-;   	pop esp ; key string
-;   	mov edi, 0xa ; key len
-;   	xor esi, esi ; contatore key len
-;   	xor ebp, ebp
-;loop:
-;   	inc eax ; incremento contatore sezione .text
-;   	mov ebx, [esp + esi]
-;   	;xor [ecx + eax], ebx ; xor tra carattere sezione .text e carattere key
-;   	inc cl ; incremento contatore stringa key
-;   	cmp byte [esp + esi], 0 ; controllo se la stringa della key sia finita
-;   	cmove esi, ebp ; se la stringa key è finita la riposiziono all'inizio
-;   	cmp eax, edx ; controllo se sono arrivato alla fine della sezione .text
-;   	jb loop ; se non sono alla fine della sezione .text riparte il loop
-;
-;    ;exit(result)
-;    ;	mov	edi,0xd			; result
-;    ;	mov	eax,60			; exit(2)
-;    ;	syscall
-;
-;	pop ebp
-;	pop esp
-;	pop ebx
+	pusha
+	call get_eip
+	mov ebx, eax
+	sub ebx, 6
+
+	mov ecx, 0xffffffff ; new entry
+	mov edx, 0xffffffff ; size text section
+	mov esi, 0xffffffff ; offset text section
+
+	sub edx, 100 ; <--------
+
+	; raggiungo la posizione della sezione text
+	neg ecx
+	add ebx, ecx
+	add ebx, esi
+	; allineo ebx per mprotect
+	mov edi, ebx
+	and ebx, -0x1000
+	;
+	neg ebx
+	add edi, ebx
+	neg ebx
+	add edx, edi
+
+
+	mov eax, 0x7d ; chiamata a mprotect per avere i permessi di scrittura su .text per decriptare
+	mov ecx, edx ; grandezza della sezione
+	mov edx, 0x07 ; PROT_READ | PROT_WRITE | PROT_EXEC
+	int 0x80
+
+	add ebx, edi
+	neg edi
+	add edx, edi
+
+	; ebx text offset
+	; ecx text size
+
+decrypt:
+	mov eax, -1
+loop:
+	inc eax;
+	xor byte [ebx + eax], 0x41
+	cmp eax, ecx
+    jb loop
+
+   ;exit(result)
+    ;	mov	ebx, eax			; result
+    ;	mov	eax,1			; exit(2)
+    ;	int 0x80
 
 	jmp string ; tecnica jmp-call-pop https://marcosvalle.github.io/osce/2018/05/06/JMP-CALL-POP-technique.html
+
+get_eip:
+	mov eax, [esp]
+    ret
 
 print:
 
@@ -87,4 +84,5 @@ end:
 	xor edi, edi
 	xor edx, edx
 	xor esi, esi
+	popa
 	jmp 0xffffffff

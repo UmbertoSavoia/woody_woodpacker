@@ -94,10 +94,10 @@ void 	insert_decrypter_in_payload32(t_mem_image *binary, t_mem_image *payload, E
 	if (error == -1)
 		exit_error("Cannot find the PT_LOAD", 29);
 
-	memcpy(payload->addr + 4, &start, sizeof(Elf32_Word)); // copiare l'entry per mprotect
-	memcpy(payload->addr + 9, &size_text, sizeof(Elf32_Word)); // mprotect size section text
-	memcpy(payload->addr + 14, &virtual_addr, sizeof(Elf32_Word)); // mprotect offset section text
-	memcpy(payload->addr + payload->size - 43, key, 10);  // Inserisco la key nel payload
+	memcpy(payload->addr + 12, &start, sizeof(Elf32_Word)); // copiare l'entry per mprotect
+	memcpy(payload->addr + 17, &size_text, sizeof(Elf32_Word)); // mprotect size section text
+	memcpy(payload->addr + 22, &virtual_addr, sizeof(Elf32_Word)); // mprotect offset section text
+	memcpy(payload->addr + payload->size - 64, key, 1);  // Inserisco la key nel payload
 }
 
 /**
@@ -122,8 +122,7 @@ void 	insert_payload32(Elf32_Phdr *phdr, int i, t_mem_image *binary, t_mem_image
 	*(Elf32_Word*)(payload->addr + payload->size - 4) = (Elf32_Word)offset;
 	ehdr->e_entry = start;
 
-	(void)key;
-	//insert_decrypter_in_payload32(binary, payload, start, key);
+	insert_decrypter_in_payload32(binary, payload, start, key);
 
 	// Inserisco il payload nel binario
 	memcpy(binary->addr + phdr[i].p_offset + phdr[i].p_filesz, payload->addr, payload->size);
@@ -167,18 +166,12 @@ void	encrypt_text_section32(t_mem_image *binary, char *key)
 	size_t			size_text = 0;
 	Elf32_Shdr		*text = binary->addr + ((Elf32_Ehdr*)binary->addr)->e_shoff;
 	unsigned char	*tmp = 0;
-	char 			*save_pos_key = key;
 
 	if ((index_section = find_section32(".text", binary, &size_text)) == -1)
 		exit_error("Section not found", 31);
 	tmp = text[index_section].sh_offset + binary->addr;
 	for (size_t i = 0; i < size_text; ++i)
-	{
-		tmp[i] ^= *key;
-		key++;
-		if (!(*key))
-			key = save_pos_key;
-	}
+		tmp[i] ^= key[0];
 }
 
 /**
