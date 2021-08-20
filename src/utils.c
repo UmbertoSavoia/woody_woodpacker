@@ -35,17 +35,28 @@ void 	*map_file_in_memory(const char *file_path, size_t *size_file)
 /**
  * Check sulla validità del file elf64
  * @param binary struttura con indirizzo e size del file in memeria
- * @return 32 se 32bit / 64 se 64bit
+ * @return 32 se ELF32 / 64 se ELF64 / 64 se PE32+(PE64)
  */
-int 	check_elf(t_mem_image *binary)
+int 	check_file(t_mem_image *binary)
 {
 	char 		mag_elf[4] = { 0x7F, 'E', 'L', 'F'};
 	int 		arch = 0;
 	Elf64_Ehdr	*ehdr64;
 	Elf32_Ehdr	*ehdr32;
+	IMAGE_DOS_HEADER *dos_header = (IMAGE_DOS_HEADER*)binary->addr;
+	uint32_t *signature_ptr = LIBPE_PTR_ADD(dos_header,dos_header->e_lfanew);
+	IMAGE_FILE_HEADER *coff = LIBPE_PTR_ADD(signature_ptr, sizeof(uint32_t));
+	IMAGE_OPTIONAL_HEADER64 *optional_header = LIBPE_PTR_ADD(coff, sizeof(IMAGE_FILE_HEADER));
+	unsigned char magic_pe64[2] = { 0x0b, 0x02 };
+
+	if (!memcmp(&dos_header->e_magic, "MZ", 2) &&
+		!memcmp(signature_ptr, "PE\0\0", sizeof(uint32_t)) &&
+		!memcmp(&optional_header->Magic, magic_pe64, sizeof(uint16_t))
+		)
+		return 65;
 
 	if (memcmp(binary->addr, mag_elf, 4))
-		exit_error("It is not ELF file", 4);
+		exit_error("It is not ELF64, ELF32 or PE32+(PE64) file", 4);
 	if ((((char*)binary->addr)[EI_CLASS] != ELFCLASS64) && ((char*)binary->addr)[EI_CLASS] != ELFCLASS32)
 		exit_error("Unsupported architecture", 5);
 	arch = ((char*)binary->addr)[EI_CLASS] == ELFCLASS64 ? 64 : 32;

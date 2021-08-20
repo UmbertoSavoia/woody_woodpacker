@@ -7,7 +7,7 @@ void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *ke
 	Elf64_Ehdr *ehdr64 = 0;
 	Elf32_Ehdr *ehdr32 = 0;
 
-	if (arch == 64)
+	if (arch == 64) // ELF64
 	{
 		ehdr64 = binary_map->addr;
 		payload->addr = extractor_payload64(PATH_PAYLOAD64, &payload->size);
@@ -17,7 +17,7 @@ void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *ke
 		insert_payload64(binary_map->addr + ehdr64->e_phoff, section_to_infect, binary_map, payload, key);
 		encrypt_text_section64(binary_map, key);
 	}
-	else if (arch == 32)
+	else if (arch == 32) //ELF32
 	{
 		ehdr32 = binary_map->addr;
 		payload->addr = extractor_payload32(PATH_PAYLOAD32, &payload->size);
@@ -26,6 +26,10 @@ void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *ke
 			exit_error("Unable to find a usable infection point", 23);
 		insert_payload32(binary_map->addr + ehdr32->e_phoff, section_to_infect, binary_map, payload, key);
 		encrypt_text_section32(binary_map, key);
+	}
+	else if (arch == 65) // PE 64bit
+	{
+		printf("File PF a 64bit\n\n");
 	}
 }
 
@@ -39,15 +43,10 @@ int 	main(int ac, char **av)
 		exit_error("Invalid Argument", 1);
 	( (ac == 4) && (strlen(av[3]) >= 10) ) ? (key = ft_substr(av[3], 0, 9)) : (key = strdup("0123456789"));
 	binary_map_org.addr = map_file_in_memory(av[1], &binary_map_org.size);
-	arch = check_elf(&binary_map_org);
+	arch = check_file(&binary_map_org);
 	binary_map.addr = copy_file(&binary_map_org, &binary_map.size);
 
 	launcher(arch, &binary_map, &payload, key);
-
-	puts("\n");
-	for (size_t i = 0; i < payload.size; ++i)
-		printf("%x ", ((unsigned char *)payload.addr)[i]);
-	puts("\n");
 
 	free(payload.addr);
 	free(key);

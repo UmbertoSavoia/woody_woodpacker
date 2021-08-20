@@ -10,6 +10,8 @@
 #include <sys/syscall.h>
 #include <elf.h>
 
+//#include "../libpe/include/libpe/pe.h"
+
 #define RED "\033[31m"
 #define GREEN "\033[32m"
 #define NC "\033[0m"
@@ -24,11 +26,102 @@ typedef struct s_mem_image
 }				t_mem_image;
 
 /*
+ * PE type and struct
+ */
+#define IMAGE_NUMBEROF_DIRECTORY_ENTRIES    16
+#define LIBPE_PTR_ADD(p, o)						((void *)((char *)(p) + (o)))
+
+typedef unsigned long       DWORD;
+typedef int                 BOOL;
+typedef unsigned char       BYTE;
+typedef unsigned short      WORD;
+typedef unsigned long		LONG;
+typedef uint64_t			ULONGLONG;
+typedef void*				HANDLE;
+
+typedef struct _IMAGE_DOS_HEADER {      // DOS .EXE header
+	uint16_t  e_magic;                     // Magic number
+	uint16_t  e_cblp;                      // Bytes on last page of file
+	uint16_t  e_cp;                        // Pages in file
+	uint16_t  e_crlc;                      // Relocations
+	uint16_t  e_cparhdr;                   // Size of header in paragraphs
+	uint16_t  e_minalloc;                  // Minimum extra paragraphs needed
+	uint16_t  e_maxalloc;                  // Maximum extra paragraphs needed
+	uint16_t  e_ss;                        // Initial (relative) SS value
+	uint16_t  e_sp;                        // Initial SP value
+	uint16_t  e_csum;                      // Checksum
+	uint16_t  e_ip;                        // Initial IP value
+	uint16_t  e_cs;                        // Initial (relative) CS value
+	uint16_t  e_lfarlc;                    // File address of relocation table
+	uint16_t  e_ovno;                      // Overlay number
+	uint16_t  e_res[4];                    // Reserved words
+	uint16_t  e_oemid;                     // OEM identifier (for e_oeminfo)
+	uint16_t  e_oeminfo;                   // OEM information; e_oemid specific
+	uint16_t  e_res2[10];                  // Reserved words
+	//WORD   e_lfanew;                    // File address of new exe header
+	uint32_t e_lfanew;
+} IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
+
+typedef struct _IMAGE_FILE_HEADER {
+	uint16_t Machine; // MachineType
+	uint16_t NumberOfSections;
+	uint32_t TimeDateStamp;
+	uint32_t PointerToSymbolTable;
+	uint32_t NumberOfSymbols;
+	uint16_t SizeOfOptionalHeader;
+	uint16_t Characteristics; // ImageCharacteristics
+} IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER; //COFF
+
+typedef struct _IMAGE_DATA_DIRECTORY {
+	DWORD   VirtualAddress;
+	DWORD   Size;
+} IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
+
+typedef struct _IMAGE_OPTIONAL_HEADER64 {
+	uint16_t	Magic;
+	uint8_t		MajorLinkerVersion;
+	uint8_t		MinorLinkerVersion;
+	uint32_t 	SizeOfCode;
+	uint32_t 	SizeOfInitializedData;
+	uint32_t 	SizeOfUninitializedData;
+	uint32_t 	AddressOfEntryPoint;
+	uint32_t 	BaseOfCode;
+	uint64_t 	ImageBase;
+	uint32_t 	SectionAlignment;
+	uint32_t 	FileAlignment;
+	uint16_t 	MajorOperatingSystemVersion;
+	uint16_t 	MinorOperatingSystemVersion;
+	uint16_t 	MajorImageVersion;
+	uint16_t 	MinorImageVersion;
+	uint16_t 	MajorSubsystemVersion;
+	uint16_t 	MinorSubsystemVersion;
+	uint32_t 	Reserved1;
+	uint32_t 	SizeOfImage;
+	uint32_t 	SizeOfHeaders;
+	uint32_t 	CheckSum;
+	uint16_t 	Subsystem; // WindowsSubsystem
+	uint16_t 	DllCharacteristics;
+	uint64_t 	SizeOfStackReserve;
+	uint64_t 	SizeOfStackCommit;
+	uint64_t 	SizeOfHeapReserve;
+	uint64_t 	SizeOfHeapCommit;
+	uint32_t 	LoaderFlags;  //must be zero
+	uint32_t 	NumberOfRvaAndSizes;
+	//IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+} IMAGE_OPTIONAL_HEADER64, *PIMAGE_OPTIONAL_HEADER64;
+
+typedef struct _IMAGE_NT_HEADERS64 {
+	DWORD Signature;
+	IMAGE_FILE_HEADER FileHeader;
+	IMAGE_OPTIONAL_HEADER64 OptionalHeader;
+} IMAGE_NT_HEADERS64, *PIMAGE_NT_HEADERS64;
+
+/*
  * Utils
  */
 void 	exit_error(const char *msg, int exit_code);
 void 	*map_file_in_memory(const char *file_path, size_t *size_file);
-int 	check_elf(t_mem_image *binary);
+int 	check_file(t_mem_image *binary);
 void 	*copy_file(t_mem_image *org, size_t *size);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 
