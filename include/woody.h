@@ -29,7 +29,9 @@ typedef struct s_mem_image
  * PE type and struct
  */
 #define IMAGE_NUMBEROF_DIRECTORY_ENTRIES    16
+#define SECTION_NAME_SIZE 8
 #define LIBPE_PTR_ADD(p, o)						((void *)((char *)(p) + (o)))
+#define LIBPE_SIZEOF_MEMBER(type, member)		sizeof(((type *)0)->member)
 
 typedef unsigned long       DWORD;
 typedef int                 BOOL;
@@ -116,17 +118,50 @@ typedef struct _IMAGE_NT_HEADERS64 {
 	IMAGE_OPTIONAL_HEADER64 OptionalHeader;
 } IMAGE_NT_HEADERS64, *PIMAGE_NT_HEADERS64;
 
+typedef struct {
+	uint8_t Name[SECTION_NAME_SIZE]; // TODO: Should we use char instead?
+	union {
+		uint32_t PhysicalAddress; // same value as next field
+		uint32_t VirtualSize;
+	} Misc;
+	uint32_t VirtualAddress;
+	uint32_t SizeOfRawData;
+	uint32_t PointerToRawData;
+	uint32_t PointerToRelocations; // always zero in executables
+	uint32_t PointerToLinenumbers; // deprecated
+	uint16_t NumberOfRelocations;
+	uint16_t NumberOfLinenumbers; // deprecated
+	uint32_t Characteristics; // SectionCharacteristics
+} IMAGE_SECTION_HEADER;
+
+typedef struct s_pe_file
+{
+	// DOS header
+	IMAGE_DOS_HEADER *dos_hdr;
+	// Signature
+	uint32_t *signature_ptr;
+	// COFF header
+	IMAGE_FILE_HEADER *coff_hdr;
+	// Optional header
+	IMAGE_OPTIONAL_HEADER64 *optional_hdr;
+	// Sections
+	IMAGE_SECTION_HEADER *sections; // array up to MAX_SECTIONS
+	uint16_t num_sections;
+	uint64_t entrypoint;
+	uint64_t imagebase;
+}				t_pe_file;
+
 /*
  * Utils
  */
 void 	exit_error(const char *msg, int exit_code);
 void 	*map_file_in_memory(const char *file_path, size_t *size_file);
-int 	check_file(t_mem_image *binary);
+int 	check_file(t_mem_image *binary, t_pe_file *pe_file);
 void 	*copy_file(t_mem_image *org, size_t *size);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 
 /*
- * 64bit
+ * Elf 64bit
  */
 void 		*extractor_payload64(const char *filepath, size_t *size);
 int			find_section_to_infect64(Elf64_Phdr *phdr, int n_phdr, size_t size_payload);
@@ -137,7 +172,7 @@ Elf64_Addr	find_virtual_addr64(t_mem_image *binary, int *error);
 void 		insert_decrypter_in_payload64(t_mem_image *binary, t_mem_image *payload, Elf64_Off start, char *key);
 
 /**
- * 32bit
+ * Elf 32bit
  */
 void 		*extractor_payload32(const char *filepath, size_t *size);
 int			find_section_to_infect32(Elf32_Phdr *phdr, int n_phdr, size_t size_payload);
@@ -146,5 +181,9 @@ int 		find_section32(const char *name, t_mem_image *binary, size_t *size_section
 void		encrypt_text_section32(t_mem_image *binary, char *key);
 Elf32_Addr	find_virtual_addr32(t_mem_image *binary, int *error);
 void 		insert_decrypter_in_payload32(t_mem_image *binary, t_mem_image *payload, Elf32_Off start, char *key);
+
+/*
+ * PE 64bit
+ */
 
 #endif

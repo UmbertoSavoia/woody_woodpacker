@@ -1,7 +1,7 @@
 #include "../include/woody.h"
 // exit 31
 
-void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *key)
+void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *key, t_pe_file *pe_file)
 {
 	int section_to_infect = 0;
 	Elf64_Ehdr *ehdr64 = 0;
@@ -30,12 +30,19 @@ void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *ke
 	else if (arch == 65) // PE 64bit
 	{
 		printf("File PF a 64bit\n\n");
+		printf("Numberto of sections da fuori: %x\n", pe_file->num_sections);
+		for (uint32_t i = 0; i < pe_file->num_sections; ++i)
+		{
+			write(1, pe_file->sections[i].Name, 8);
+			puts("");
+		}
 	}
 }
 
 int 	main(int ac, char **av)
 {
 	t_mem_image	binary_map, binary_map_org, payload;
+	t_pe_file	pe_file;
 	int			arch = 0;
 	char 		*key = 0;
 
@@ -43,10 +50,10 @@ int 	main(int ac, char **av)
 		exit_error("Invalid Argument", 1);
 	( (ac == 4) && (strlen(av[3]) >= 10) ) ? (key = ft_substr(av[3], 0, 9)) : (key = strdup("0123456789"));
 	binary_map_org.addr = map_file_in_memory(av[1], &binary_map_org.size);
-	arch = check_file(&binary_map_org);
+	arch = check_file(&binary_map_org, &pe_file);
 	binary_map.addr = copy_file(&binary_map_org, &binary_map.size);
 
-	launcher(arch, &binary_map, &payload, key);
+	launcher(arch, &binary_map, &payload, key, &pe_file);
 
 	free(payload.addr);
 	free(key);
