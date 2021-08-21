@@ -1,11 +1,12 @@
 #include "../include/woody.h"
-// exit 31
+// exit 33
 
 void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *key, t_pe_file *pe_file)
 {
 	int section_to_infect = 0;
 	Elf64_Ehdr *ehdr64 = 0;
 	Elf32_Ehdr *ehdr32 = 0;
+	uint32_t offset = 0;
 
 	if (arch == 64) // ELF64
 	{
@@ -29,19 +30,14 @@ void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *ke
 	}
 	else if (arch == 65) // PE 64bit
 	{
-		printf("File PF a 64bit\n\n");
-		printf("Numberto of sections da fuori: %x\n", pe_file->num_sections);
-		for (uint32_t i = 0; i < pe_file->num_sections; ++i)
-		{
-			write(1, pe_file->sections[i].Name, 8);
-			puts("");
-		}
+		if ((section_to_infect = find_section_to_infect_PE64(binary_map, pe_file, payload, &offset)) == -1)
+			exit_error("Unable to find a usable infection point", 32);
 	}
 }
 
 int 	main(int ac, char **av)
 {
-	t_mem_image	binary_map, binary_map_org, payload;
+	t_mem_image	binary_map = {0}, binary_map_org = {0}, payload = {0};
 	t_pe_file	pe_file;
 	int			arch = 0;
 	char 		*key = 0;

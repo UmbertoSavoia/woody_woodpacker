@@ -28,6 +28,8 @@ typedef struct s_mem_image
 /*
  * PE type and struct
  */
+#define PAYLOAD_PE "\xeb\x17\x5e\xbf\x90\xd4\xb5\x9e\xb8\xb0\x53\xb6\x9e\x6a\x00\x6a\x00\x6a\x0e\x56\x57\xff\xd0\xeb\x13\xe8\xe4\xff\xff\xff\x2e\x2e\x2e\x2e\x57\x4f\x4f\x44\x59\x2e\x2e\x2e\x2e\x0a\xe9\xff\xff\xff\xff"
+#define PAYLOAD_PE_SIZE 49
 #define IMAGE_NUMBEROF_DIRECTORY_ENTRIES    16
 #define SECTION_NAME_SIZE 8
 #define LIBPE_PTR_ADD(p, o)						((void *)((char *)(p) + (o)))
@@ -151,6 +153,9 @@ typedef struct s_pe_file
 	uint64_t imagebase;
 }				t_pe_file;
 
+
+// FILE:
+
 /*
  * Utils
  */
@@ -185,5 +190,6 @@ void 		insert_decrypter_in_payload32(t_mem_image *binary, t_mem_image *payload, 
 /*
  * PE 64bit
  */
+int 	find_section_to_infect_PE64(t_mem_image *binary, t_pe_file *pe_file, t_mem_image *payload, uint32_t *new_entry);
 
 #endif
