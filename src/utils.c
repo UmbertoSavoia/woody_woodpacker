@@ -37,7 +37,7 @@ void 	*map_file_in_memory(const char *file_path, size_t *size_file)
  * @param binary struttura con indirizzo e size del file in memeria
  * @return 32 se ELF32 / 64 se ELF64 / 64 se PE32+(PE64)
  */
-int 	check_file(t_mem_image *binary, t_pe_file *pe_file)
+int 	check_file(t_mem_image *binary)
 {
 	char 		mag_elf[4] = { 0x7F, 'E', 'L', 'F'};
 	int 		arch = 0;
@@ -52,15 +52,10 @@ int 	check_file(t_mem_image *binary, t_pe_file *pe_file)
 		IMAGE_FILE_HEADER *coff = LIBPE_PTR_ADD(signature_ptr, sizeof(uint32_t));
 		IMAGE_OPTIONAL_HEADER64 *optional_header = LIBPE_PTR_ADD(coff, sizeof(IMAGE_FILE_HEADER));
 		unsigned char magic_pe64[2] = { 0x0b, 0x02 };
-		uint32_t sections_offset = sizeof(uint32_t) + sizeof(IMAGE_FILE_HEADER) + coff->SizeOfOptionalHeader;
-		IMAGE_SECTION_HEADER *sections = LIBPE_PTR_ADD(signature_ptr, sections_offset);
 
 		if (!memcmp(signature_ptr, "PE\0\0", sizeof(uint32_t)) &&
 			!memcmp(&optional_header->Magic, magic_pe64, sizeof(uint16_t)))
-		{
-			*pe_file = (t_pe_file){ dos_header, signature_ptr, coff, optional_header, sections, coff->NumberOfSections, 0, 0 };
 			return 65;
-		}
 	}
 
 	if (memcmp(binary->addr, mag_elf, 4))

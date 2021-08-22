@@ -60,9 +60,6 @@ void 	insert_payload_PE64(t_mem_image *binary, t_pe_file *pe_file, int index_sec
 	*(uint32_t *)(payload->addr + payload->size - 4) = (uint32_t )original_entry;
 	// copio il payload nel binario
 	memcpy(binary->addr + new_entry, payload->addr, payload->size);
-
-	puts("");
-	for(int i = 0; i < PAYLOAD_PE_SIZE; ++i)
-		printf("%x ", ((unsigned char*)payload->addr)[i]);
-	puts("");
+	// aumento la size della sezione .text
+	pe_file->sections[index_section].Misc.VirtualSize += payload->size;
 }

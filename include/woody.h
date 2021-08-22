@@ -10,8 +10,6 @@
 #include <sys/syscall.h>
 #include <elf.h>
 
-//#include "../libpe/include/libpe/pe.h"
-
 #define RED "\033[31m"
 #define GREEN "\033[32m"
 #define NC "\033[0m"
@@ -28,7 +26,6 @@ typedef struct s_mem_image
 /*
  * PE type and struct
  */
-
 
 #define PAYLOAD_PE "\xeb\x1b\x5e\xbf\x90\xd4\xb5\x9e\xb9\xb0\x53\xb6\x9e\x6a\xf5\xff\xd7\x6a\x00\x6a\x00\x6a\x0e\x56\x50\xff\xd1\xeb\x13\xe8\xe0\xff\xff\xff\x2e\x2e\x2e\x2e\x57\x4f\x4f\x44\x59\x2e\x2e\x2e\x2e\x0a\xe9\xff\xff\xff\xff"
 #define PAYLOAD_PE_SIZE 53
@@ -164,7 +161,7 @@ typedef struct s_pe_file
  */
 void 	exit_error(const char *msg, int exit_code);
 void 	*map_file_in_memory(const char *file_path, size_t *size_file);
-int 	check_file(t_mem_image *binary, t_pe_file *pe_file);
+int 	check_file(t_mem_image *binary);
 void 	*copy_file(t_mem_image *org, size_t *size);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 

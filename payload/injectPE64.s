@@ -38,36 +38,3 @@ section .text
 
 	end:
 		jmp 0xffffffff
-
-;	_start:
-;		;pusha
-;
-;		push	-11
-;		mov		rax, 0x9eb5d490
-;		call	rax
-;
-;		push	0x000a
-;		push	'COP'
-;		mov		rcx, rsp
-;		push	rbx
-;		mov		rbx, rsp
-;		push	0
-;		push	rbx
-;		push	5
-;		push	rcx
-;		mov		rdi, rax ; save handle
-;		push	rax
-;		mov		rax, 0x9eb653b0
-;		call	rax
-;
-;		;popa
-;
-;		;close handle
-;		push	rdi
-;		mov		rax, 0x9eb648e0
-;		call	rax
-;
-;
-;		mov		rax, 0xFFFFFFFF
-;		push	rax
-;		ret
