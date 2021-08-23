@@ -1,7 +1,7 @@
 TARGET = woody_woodpacker
 
 CC = gcc
-CFLAGS = -Werror -Wall -Wextra -g
+CFLAGS = -g -Werror -Wall -Wextra -lz
 
 AS = nasm
 ASFLAGS64 = -f elf64

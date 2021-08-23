@@ -1,5 +1,5 @@
 #include "../include/woody.h"
-// exit 33
+// exit 35
 
 void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *key, t_pe_file *pe_file)
 {
@@ -44,6 +44,22 @@ void 	launcher(int arch, t_mem_image *binary_map, t_mem_image *payload, char *ke
 	}
 }
 
+int 	check_args(int ac, char **av)
+{
+	if (ac < 2)
+		return 1;
+	else if ( (ac == 2) && (!memcmp(av[1], "-c", 2) || !memcmp(av[1], "-d", 2)) )
+		return 1;
+	else if ( ((ac == 3) && ( (memcmp(av[1], "-c", 2) != 0) )) && (ac == 3) && ( (memcmp(av[1], "-d", 2) != 0) ) )
+		return 1;
+	else if ( (ac == 4) && memcmp(av[2], "-k", 2) )
+		return 1;
+	else if ( ac > 4 )
+		return 1;
+	else
+		return 0;
+}
+
 int 	main(int ac, char **av)
 {
 	t_mem_image	binary_map = {0}, binary_map_org = {0}, payload = {0};
@@ -51,8 +67,12 @@ int 	main(int ac, char **av)
 	int			arch = 0;
 	char 		*key = 0;
 
-	if ((ac < 2) || (ac == 3) || ( (ac == 4) && (memcmp(av[2], "-k", 2) != 0) ) || ac > 4)
+	if (check_args(ac, av))
 		exit_error("Invalid Argument", 1);
+	if (!memcmp(av[1], "-c", 2))
+		compress_file(av[2]);
+	else if (!memcmp(av[1], "-d", 2))
+		decompress_file(av[2]);
 	( (ac == 4) && (strlen(av[3]) >= 10) ) ? (key = ft_substr(av[3], 0, 9)) : (key = strdup("0123456789"));
 	binary_map_org.addr = map_file_in_memory(av[1], &binary_map_org.size);
 	arch = check_file(&binary_map_org);
