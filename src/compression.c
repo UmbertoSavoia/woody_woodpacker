@@ -1,5 +1,9 @@
 #include "../include/woody.h"
 
+/**
+ * Comprime il file passato come argomento
+ * @param file nome del file da comprimere
+ */
 void 	compress_file(char *file)
 {
 	int fd_source = open(file, O_RDWR);
@@ -28,6 +32,10 @@ void 	compress_file(char *file)
 	exit(0);
 }
 
+/**
+ * Deomprime il file passato come argomento
+ * @param file nome del file da decomprimere
+ */
 void 	decompress_file(char *file)
 {
 	int fd_source = open(file, O_RDWR);
